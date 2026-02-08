@@ -86,17 +86,18 @@
     function Icon({ name, size = 20, className = '', strokeWidth = 2 }) {
       const ref = useRef(null);
       useEffect(() => {
-        if (ref.current && lucide.icons[name]) {
+        if (ref.current) {
           ref.current.innerHTML = '';
-          const [tag, attrs, children] = lucide.icons[name];
-          const svg = document.createElementNS('http://www.w3.org/2000/svg', tag);
-          Object.entries({...attrs, width: size, height: size, 'stroke-width': strokeWidth}).forEach(([k, v]) => svg.setAttribute(k, v));
-          children.forEach(([childTag, childAttrs]) => {
-            const child = document.createElementNS('http://www.w3.org/2000/svg', childTag);
-            Object.entries(childAttrs).forEach(([k, v]) => child.setAttribute(k, v));
-            svg.appendChild(child);
-          });
-          ref.current.appendChild(svg);
+          // Convert kebab-case to PascalCase (e.g. "book-open" -> "BookOpen")
+          const pascalName = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
+          const iconData = lucide[pascalName] || (lucide.icons && lucide.icons[pascalName]);
+          if (iconData) {
+            const svg = lucide.createElement(iconData);
+            svg.setAttribute('width', String(size));
+            svg.setAttribute('height', String(size));
+            svg.setAttribute('stroke-width', String(strokeWidth));
+            ref.current.appendChild(svg);
+          }
         }
       }, [name, size, strokeWidth]);
       return <span ref={ref} className={`inline-flex items-center justify-center ${className}`} />;
