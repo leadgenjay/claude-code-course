@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Code Course</title>
-  <meta name="description" content="Your comprehensive reference for mastering Claude Code — the AI-powered CLI for software engineering.">
+  <title>Claude Code Course | Lead Gen Jay</title>
+  <meta name="description" content="Your comprehensive reference for mastering Claude Code — by Lead Gen Jay.">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -30,13 +31,10 @@
     code, pre, kbd, .font-mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace !important; }
     .cmd-k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.75rem; }
     .gradient-text {
-      background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #ED0D51;
     }
     .hero-gradient {
-      background: linear-gradient(180deg, #EEF2FF 0%, #FFFFFF 50%, #F5F3FF 100%);
+      background: #F8F9FA;
     }
     .code-block {
       background: #1E1E2E;
@@ -48,7 +46,7 @@
     .code-block .fn { color: #F9E2AF; }
     .code-block .op { color: #89DCEB; }
     .code-block .var { color: #F38BA8; }
-    .accent-bar { border-left: 2px solid #6366F1; }
+    .accent-bar { border-left: 2px solid #ED0D51; }
     .cmd-backdrop { animation: fadeIn 150ms ease-out; }
     .cmd-modal { animation: scaleIn 150ms ease-out; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -109,13 +107,13 @@
     // ═══════════════════════════════════════════════════════════════
 
     const CATEGORIES = [
-      { id: 'getting-started', name: 'Getting Started', icon: 'rocket', color: '#6366F1', description: 'Install and set up Claude Code' },
-      { id: 'workflow', name: 'Workflow', icon: 'zap', color: '#F59E0B', description: 'Development process and best practices' },
-      { id: 'terminal', name: 'Terminal', icon: 'terminal', color: '#10B981', description: 'Keyboard shortcuts and commands' },
-      { id: 'mcp', name: 'MCP Servers', icon: 'plug', color: '#EC4899', description: 'Connect to external services' },
-      { id: 'configuration', name: 'Configuration', icon: 'settings', color: '#8B5CF6', description: 'CLAUDE.md, models, hooks, and more' },
-      { id: 'n8n', name: 'n8n Resources', icon: 'git-branch', color: '#FF6D5A', description: 'Automation prompts and workflows' },
-      { id: 'reference', name: 'Reference', icon: 'book-open', color: '#0EA5E9', description: 'React, architecture, and terminology' },
+      { id: 'getting-started', name: 'Getting Started', icon: 'rocket', color: '#ED0D51', description: 'Install and set up Claude Code' },
+      { id: 'workflow', name: 'Workflow', icon: 'zap', color: '#0144F8', description: 'Development process and best practices' },
+      { id: 'terminal', name: 'Terminal', icon: 'terminal', color: '#ED0D51', description: 'Keyboard shortcuts and commands' },
+      { id: 'mcp', name: 'MCP Servers', icon: 'plug', color: '#0144F8', description: 'Connect to external services' },
+      { id: 'configuration', name: 'Configuration', icon: 'settings', color: '#ED0D51', description: 'CLAUDE.md, models, hooks, and more' },
+      { id: 'n8n', name: 'n8n Resources', icon: 'git-branch', color: '#0144F8', description: 'Automation prompts and workflows' },
+      { id: 'reference', name: 'Reference', icon: 'book-open', color: '#ED0D51', description: 'React, architecture, and terminology' },
     ];
 
     const TOPICS = [
@@ -1122,7 +1120,7 @@ Code that runs between the request and response (auth checks, logging, redirects
       });
 
       // Inline code
-      html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 bg-[#F3F4F6] text-[#6366F1] rounded text-sm font-mono">$1</code>');
+      html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 bg-[#F3F4F6] text-[#ED0D51] rounded text-sm font-mono">$1</code>');
 
       // Tables
       html = html.replace(/^\|(.+)\|\s*\n\|[-| :]+\|\s*\n((?:\|.+\|\s*\n?)*)/gm, (match, headerRow, bodyRows) => {
@@ -1170,11 +1168,10 @@ Code that runs between the request and response (auth checks, logging, redirects
       return (
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-[#E5E7EB]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-            <a href="#" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
-                <Icon name="terminal" size={16} className="text-white" />
-              </div>
-              <span className="font-bold text-lg text-[#111827]">Claude Code Course</span>
+            <a href="#" className="flex items-center gap-2.5">
+              <img src="/lgj-logo.webp" alt="Lead Gen Jay" className="h-7" />
+              <span className="text-[#9CA3AF] font-light">|</span>
+              <span className="font-bold text-lg text-[#0f172a]">Claude Code Course</span>
             </a>
             <button
               onClick={onOpenCmd}
@@ -1220,9 +1217,9 @@ Code that runs between the request and response (auth checks, logging, redirects
 
       const getTypeColor = (type) => {
         switch(type) {
-          case 'topic': return 'bg-[#EEF2FF] text-[#6366F1]';
+          case 'topic': return 'bg-[#FFF0F3] text-[#ED0D51]';
           case 'shortcut': return 'bg-[#ECFDF5] text-[#10B981]';
-          case 'mcp-command': return 'bg-[#FDF2F8] text-[#EC4899]';
+          case 'mcp-command': return 'bg-[#EBF0FF] text-[#0144F8]';
           default: return 'bg-[#F3F4F6] text-[#6B7280]';
         }
       };
@@ -1230,7 +1227,7 @@ Code that runs between the request and response (auth checks, logging, redirects
       return (
         <button
           onClick={onClick}
-          className={`w-full px-4 py-3 text-left transition-colors duration-100 ${isSelected ? 'bg-[#EEF2FF]' : 'hover:bg-[#F9FAFB]'}`}
+          className={`w-full px-4 py-3 text-left transition-colors duration-100 ${isSelected ? 'bg-[#FFF0F3]' : 'hover:bg-[#F9FAFB]'}`}
         >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -1349,7 +1346,7 @@ Code that runs between the request and response (auth checks, logging, redirects
       return (
         <button
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#6366F1] text-white rounded-lg hover:bg-[#4F46E5] transition-colors duration-150 font-medium text-sm mb-6"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#ED0D51] text-white rounded-lg hover:bg-[#d40b48] transition-colors duration-150 font-medium text-sm mb-6"
         >
           <Icon name={copied ? 'check' : 'clipboard-copy'} size={16} />
           {copied ? 'Copied to Clipboard!' : 'Copy Full Prompt'}
@@ -1504,7 +1501,7 @@ Code that runs between the request and response (auth checks, logging, redirects
               placeholder="Filter..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full max-w-md pl-10 pr-4 py-2.5 border border-[#E5E7EB] rounded-lg outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/10 transition-all bg-white text-sm"
+              className="w-full max-w-md pl-10 pr-4 py-2.5 border border-[#E5E7EB] rounded-lg outline-none focus:border-[#ED0D51] focus:ring-2 focus:ring-[#ED0D51]/10 transition-all bg-white text-sm"
             />
           </div>
 
@@ -1523,7 +1520,7 @@ Code that runs between the request and response (auth checks, logging, redirects
                         <div className="font-semibold text-[#111827] mb-1">{t.title}</div>
                         <div className="text-sm text-[#6B7280]">{t.description}</div>
                       </div>
-                      <Icon name="arrow-right" size={16} className="text-[#D1D5DB] group-hover:text-[#6366F1] topic-arrow mt-1 shrink-0" />
+                      <Icon name="arrow-right" size={16} className="text-[#D1D5DB] group-hover:text-[#ED0D51] topic-arrow mt-1 shrink-0" />
                     </div>
                   </button>
                 ))}
@@ -1624,7 +1621,8 @@ Code that runs between the request and response (auth checks, logging, redirects
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
               <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+                  <img src="/lgj-logo.webp" alt="Lead Gen Jay" className="h-10 mb-6" />
+                  <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight text-[#0f172a]">
                     Master{' '}
                     <span className="gradient-text">Claude Code</span>
                   </h1>
@@ -1634,11 +1632,11 @@ Code that runs between the request and response (auth checks, logging, redirects
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={onOpenCmd}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#111827] text-white rounded-xl hover:bg-[#1F2937] transition-colors duration-150 font-medium"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#ED0D51] text-white rounded-xl hover:bg-[#d40b48] transition-colors duration-150 font-medium"
                     >
                       <Icon name="search" size={16} />
                       <span>Search anything</span>
-                      <kbd className="cmd-k px-1.5 py-0.5 bg-white/10 rounded text-white/60 text-xs">\u2318K</kbd>
+                      <kbd className="cmd-k px-1.5 py-0.5 bg-white/20 rounded text-white/70 text-xs">\u2318K</kbd>
                     </button>
                     <button
                       onClick={() => onSelectTopic(TOPICS.find(t => t.slug === 'what-is-claude-code'))}
@@ -1699,7 +1697,7 @@ Code that runs between the request and response (auth checks, logging, redirects
                           <div className="font-semibold text-[#111827] mb-1">{topic.title}</div>
                           <div className="text-sm text-[#6B7280] leading-snug">{topic.description}</div>
                         </div>
-                        <Icon name="arrow-right" size={16} className="text-[#D1D5DB] group-hover:text-[#6366F1] topic-arrow mt-6 shrink-0" />
+                        <Icon name="arrow-right" size={16} className="text-[#D1D5DB] group-hover:text-[#ED0D51] topic-arrow mt-6 shrink-0" />
                       </div>
                     </button>
                   );
@@ -1829,14 +1827,13 @@ Code that runs between the request and response (auth checks, logging, redirects
 
           {/* Footer */}
           <footer className="border-t border-[#E5E7EB] bg-white mt-auto">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#9CA3AF]">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
-                  <Icon name="terminal" size={10} className="text-white" />
-                </div>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#9CA3AF]">
+              <div className="flex items-center gap-3">
+                <img src="/lgj-logo.webp" alt="Lead Gen Jay" className="h-5" />
+                <span className="text-[#D1D5DB]">|</span>
                 <span>Claude Code Course</span>
               </div>
-              <div>Built for developers who build with AI</div>
+              <div>Built by <span className="text-[#ED0D51] font-medium">Lead Gen Jay</span></div>
             </div>
           </footer>
 
