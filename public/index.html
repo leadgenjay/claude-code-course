@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code Course</title>
+  <meta name="description" content="Your comprehensive reference for mastering Claude Code — the AI-powered CLI for software engineering.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    code, pre, kbd, .font-mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace !important; }
+    .cmd-k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.75rem; }
+    .gradient-text {
+      background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-gradient {
+      background: linear-gradient(180deg, #EEF2FF 0%, #FFFFFF 50%, #F5F3FF 100%);
+    }
+    .code-block {
+      background: #1E1E2E;
+      color: #CDD6F4;
+    }
+    .code-block .kw { color: #89B4FA; }
+    .code-block .str { color: #A6E3A1; }
+    .code-block .cmt { color: #6C7086; font-style: italic; }
+    .code-block .fn { color: #F9E2AF; }
+    .code-block .op { color: #89DCEB; }
+    .code-block .var { color: #F38BA8; }
+    .accent-bar { border-left: 2px solid #6366F1; }
+    .cmd-backdrop { animation: fadeIn 150ms ease-out; }
+    .cmd-modal { animation: scaleIn 150ms ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .topic-card:hover .topic-arrow { transform: translateX(4px); }
+    .topic-arrow { transition: transform 200ms ease; }
+
+    /* Scrollbar styling for code blocks */
+    .code-block::-webkit-scrollbar { height: 6px; }
+    .code-block::-webkit-scrollbar-track { background: #181825; border-radius: 3px; }
+    .code-block::-webkit-scrollbar-thumb { background: #45475A; border-radius: 3px; }
+
+    /* Prose styling for topic content */
+    .topic-prose h1 { font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; color: #111827; }
+    .topic-prose h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #111827; }
+    .topic-prose h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #111827; }
+    .topic-prose p { margin-bottom: 1rem; line-height: 1.7; color: #374151; }
+    .topic-prose ul { margin-bottom: 1rem; }
+    .topic-prose li { margin-left: 1.25rem; margin-bottom: 0.35rem; line-height: 1.6; color: #374151; list-style-type: disc; }
+    .topic-prose strong { color: #111827; font-weight: 600; }
+    .topic-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    .topic-prose th, .topic-prose td { border: 1px solid #E5E7EB; padding: 0.5rem 0.75rem; text-align: left; font-size: 0.875rem; }
+    .topic-prose th { background: #F9FAFB; font-weight: 600; }
+    .topic-prose tr:nth-child(even) td { background: #F9FAFB; }
+  </style>
+</head>
+<body class="bg-[#FAFBFC] text-[#111827] min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+    // ═══════════════════════════════════════════════════════════════
+    // LUCIDE ICON COMPONENT
+    // ═══════════════════════════════════════════════════════════════
+
+    function Icon({ name, size = 20, className = '', strokeWidth = 2 }) {
+      const ref = useRef(null);
+      useEffect(() => {
+        if (ref.current && lucide.icons[name]) {
+          ref.current.innerHTML = '';
+          const [tag, attrs, children] = lucide.icons[name];
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', tag);
+          Object.entries({...attrs, width: size, height: size, 'stroke-width': strokeWidth}).forEach(([k, v]) => svg.setAttribute(k, v));
+          children.forEach(([childTag, childAttrs]) => {
+            const child = document.createElementNS('http://www.w3.org/2000/svg', childTag);
+            Object.entries(childAttrs).forEach(([k, v]) => child.setAttribute(k, v));
+            svg.appendChild(child);
+          });
+          ref.current.appendChild(svg);
+        }
+      }, [name, size, strokeWidth]);
+      return <span ref={ref} className={`inline-flex items-center justify-center ${className}`} />;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CONTENT DATA
+    // ═══════════════════════════════════════════════════════════════
+
+    const CATEGORIES = [
+      { id: 'getting-started', name: 'Getting Started', icon: 'rocket', color: '#6366F1', description: 'Install and set up Claude Code' },
+      { id: 'workflow', name: 'Workflow', icon: 'zap', color: '#F59E0B', description: 'Development process and best practices' },
+      { id: 'terminal', name: 'Terminal', icon: 'terminal', color: '#10B981', description: 'Keyboard shortcuts and commands' },
+      { id: 'mcp', name: 'MCP Servers', icon: 'plug', color: '#EC4899', description: 'Connect to external services' },
+      { id: 'configuration', name: 'Configuration', icon: 'settings', color: '#8B5CF6', description: 'CLAUDE.md, models, hooks, and more' },
+      { id: 'n8n', name: 'n8n Resources', icon: 'git-branch', color: '#FF6D5A', description: 'Automation prompts and workflows' },
+      { id: 'reference', name: 'Reference', icon: 'book-open', color: '#0EA5E9', description: 'React, architecture, and terminology' },
+    ];
+
+    const TOPICS = [
+      {
+        slug: 'what-is-claude-code',
+        title: 'What is Claude Code',
+        category: 'getting-started',
+        description: 'Introduction to Claude Code CLI tool',
+        tags: ['intro', 'faq', 'pricing', 'use cases'],
+        content: `## What is Claude Code?
+
+Claude Code is Anthropic's official CLI for Claude \u2014 an interactive command-line tool that helps you with software engineering tasks directly in your terminal.
+
+### Key Features
+- **Interactive CLI** \u2014 Chat with Claude directly in your terminal
+- **File Operations** \u2014 Read, write, and edit files across your codebase
+- **Code Generation** \u2014 Generate code from natural language descriptions
+- **Project Understanding** \u2014 Understands your full codebase context via CLAUDE.md
+- **Tool Integration** \u2014 Connect to GitHub, Vercel, Supabase, and more via MCP
+
+### Use Cases
+- Solving bugs and debugging complex issues
+- Adding new features and functionality
+- Refactoring and improving code quality
+- Writing tests and documentation
+- Code review and security analysis
+- Full-stack application development
+
+### Pricing
+Claude Code uses your Anthropic API credits (or a Max subscription). Typical usage costs $5\u201315/day for active development. Check anthropic.com for current model pricing.
+
+### How It Works
+1. You type a request in natural language
+2. Claude reads your codebase and understands context
+3. Claude proposes changes and executes them (with your permission)
+4. You review, approve, and iterate`
+      },
+      {
+        slug: 'installing-claude-code',
+        title: 'Installing Claude Code',
+        category: 'getting-started',
+        description: 'How to install and set up Claude Code',
+        tags: ['install', 'setup', 'terminal', 'cursor', 'api key'],
+        content: `## Installing Claude Code
+
+### Prerequisites
+- Node.js 18+ installed
+- Anthropic API key (or Claude Max subscription)
+
+### Installation
+\`\`\`bash
+npm install -g @anthropic-ai/claude-code
+\`\`\`
+
+### First Run
+\`\`\`bash
+cd your-project-directory
+claude
+\`\`\`
+
+On first run, Claude will ask for your API key and begin indexing your project.
+
+### IDE Integrations
+- **VS Code** \u2014 Use the integrated terminal, or install the Claude Code extension
+- **Cursor** \u2014 Native Claude Code support in terminal
+- **Any terminal** \u2014 Works in iTerm2, Warp, Hyper, or the default Terminal app
+
+### Set Your API Key
+\`\`\`bash
+export ANTHROPIC_API_KEY=your-key-here
+\`\`\`
+
+Add this to your \`~/.zshrc\` or \`~/.bashrc\` to persist across sessions.
+
+### Verify Installation
+\`\`\`bash
+claude --version
+\`\`\`
+
+### Updating
+\`\`\`bash
+npm update -g @anthropic-ai/claude-code
+\`\`\``
+      },
+      {
+        slug: 'process-breakdown',
+        title: 'Process Breakdown',
+        category: 'workflow',
+        description: 'The recommended development workflow',
+        tags: ['workflow', 'planning', 'brainstorming', 'building', 'process'],
+        content: `## Development Process
+
+The most effective way to work with Claude Code is to follow a structured process. Don't just jump into building \u2014 plan first.
+
+### 1. Planning Phase (Outside Claude)
+- Define requirements and acceptance criteria
+- Sketch UI/UX mockups
+- List features in priority order
+- Identify technical constraints
+
+### 2. Brainstorming Phase (With Claude)
+Start a session and explore:
+- "What's the best approach for [feature]?"
+- "What are the tradeoffs between X and Y?"
+- "How should I structure this data?"
+
+### 3. Building Phase
+Implement step-by-step. Give Claude one task at a time:
+\`\`\`
+"Create the user profile component with name, email, and avatar"
+\`\`\`
+
+Don't ask for everything at once. Break it down.
+
+### 4. Testing & Review
+- Run your test suite
+- Manual QA in the browser
+- Ask Claude to review its own code: "Review the code you just wrote for bugs"
+
+### 5. Deploy
+- Preview deployment first
+- Get feedback
+- Ship to production
+
+**Pro Tip:** Use "ultrathink" or "think really hard about this" before complex planning tasks. This activates extended thinking mode for deeper analysis.`
+      },
+      {
+        slug: 'skills-and-agents',
+        title: 'Skills & Agents',
+        category: 'workflow',
+        description: 'Understanding skills vs agents',
+        tags: ['skills', 'agents', 'automation', 'task', 'subagent'],
+        content: `## Skills vs Agents
+
+### Skills (Slash Commands)
+Pre-built workflows you invoke with a slash command.
+- Invoked with \`/skillname\`
+- Run in the main conversation context
+- Great for quick, focused tasks
+
+### Agents (Subagents)
+Autonomous sub-processes that work independently.
+- Spawned via the Task tool internally
+- Run in isolation with their own context
+- Return results to the main conversation
+- Great for research-heavy or multi-step work
+
+### When to Use What
+
+| Use Case | Use |
+|----------|-----|
+| Quick code review | Skill (\`/review\`) |
+| Git commit | Skill (\`/commit\`) |
+| Deep codebase research | Agent (Explore) |
+| Architecture planning | Agent (Plan) |
+| Parallel searches | Multiple agents |
+
+### Common Built-in Skills
+| Skill | Purpose |
+|-------|---------|
+| \`/init\` | Create a CLAUDE.md for your project |
+| \`/commit\` | Create git commits |
+| \`/review\` | Code review |
+| \`/clear\` | Clear conversation context |
+| \`/model\` | Switch AI model |
+| \`/help\` | Show available commands |`
+      },
+      {
+        slug: 'context-management',
+        title: 'Context Window Management',
+        category: 'workflow',
+        description: 'Manage Claude\'s context window effectively',
+        tags: ['context', 'window', 'tokens', 'clear', 'memory', 'performance'],
+        content: `## Context Window Management
+
+Claude Code has a ~200K token context window (~140\u2013150K usable after system prompts). Understanding how to manage it is critical for effective sessions.
+
+### What Fills the Context
+- Your conversation history (prompts + responses)
+- Files Claude reads during the session
+- Tool call results (search results, command output)
+- CLAUDE.md and project configuration
+- MCP server descriptions
+
+### Performance Degradation
+At **70\u201375% capacity**, you'll notice:
+- Slower responses
+- Less accurate code generation
+- Claude "forgetting" earlier context
+- More hallucinations
+
+### When to Clear or Start Fresh
+
+**Use \`/clear\`** when:
+- Switching to an unrelated task in the same project
+- Context is cluttered with old file reads
+- Claude starts making mistakes it wasn't making before
+
+**Start a new session** when:
+- Moving to a completely different project
+- After a major milestone is complete
+- Claude is consistently confused about the codebase
+
+### Tips for Staying Lean
+- **Keep CLAUDE.md concise** \u2014 every line costs tokens on every message
+- **Disable unused MCP servers** \u2014 each one adds to system prompt size
+- **Don't paste huge files** \u2014 let Claude read them with tools instead
+- **One task per session** \u2014 don't mix unrelated work
+- **Be specific** \u2014 "Fix the login bug in auth.ts" > "Fix bugs"
+- **Use subagents** for research \u2014 they have their own context windows`
+      },
+      {
+        slug: 'best-practices',
+        title: 'Best Practices & Common Mistakes',
+        category: 'workflow',
+        description: 'Avoid common pitfalls and work effectively',
+        tags: ['tips', 'mistakes', 'best practices', 'workflow', 'productivity'],
+        content: `## Best Practices & Common Mistakes
+
+### Do's
+
+**Plan before building**
+Tell Claude what you want before asking it to code. "I need a user settings page with email, password change, and notification preferences. Plan the approach first."
+
+**One task at a time**
+Don't ask Claude to "build the entire app." Break it into focused tasks: create the component, add the API route, write the tests.
+
+**Verify Claude's output**
+Claude can be confidently wrong. Always review generated code, especially:
+- Environment variables and secrets
+- Database queries (SQL injection risk)
+- Authentication/authorization logic
+- External API integrations
+
+**Use subagents for isolation**
+When Claude needs to research something, let it spawn a subagent. This keeps the main context clean.
+
+**Start fresh sessions for unrelated work**
+Don't debug a CSS issue in the same session where you built a database migration.
+
+### Don'ts
+
+**Don't let CLAUDE.md get bloated**
+Keep it under 500 lines. Every line is included in every message. Remove outdated sections regularly.
+
+**Don't mix tasks in one session**
+Context pollution leads to confused outputs. One session = one feature/bugfix.
+
+**Don't blindly accept all changes**
+Read the diffs. Claude sometimes makes unnecessary "improvements" to surrounding code.
+
+**Don't fight the tool**
+If Claude keeps suggesting a different approach, consider why. It might see a better path.
+
+**Don't skip the planning step**
+The #1 mistake is jumping straight to "build it." Spend 2 minutes planning to save 20 minutes fixing.`
+      },
+      {
+        slug: 'custom-commands',
+        title: 'Custom Slash Commands',
+        category: 'workflow',
+        description: 'Create your own slash commands',
+        tags: ['commands', 'slash', 'custom', 'workflow', 'automation'],
+        content: `## Custom Slash Commands
+
+You can create your own slash commands that appear alongside built-in ones like \`/commit\` and \`/review\`.
+
+### How They Work
+Custom commands are markdown files stored in \`.claude/commands/\` in your project. Each file becomes a slash command named after the filename.
+
+### Creating a Command
+
+1. Create the directory:
+\`\`\`bash
+mkdir -p .claude/commands
+\`\`\`
+
+2. Create a markdown file:
+\`\`\`bash
+touch .claude/commands/test.md
+\`\`\`
+
+3. Write the command prompt:
+\`\`\`markdown
+Run the test suite for this project.
+
+1. Find the test configuration (jest.config, vitest.config, etc.)
+2. Run the tests
+3. If any fail, analyze the failures and suggest fixes
+4. Report a summary of pass/fail counts
+\`\`\`
+
+4. Use it in Claude Code:
+\`\`\`bash
+/test
+\`\`\`
+
+### Command Format
+- **Filename** = command name (e.g., \`deploy.md\` \u2192 \`/deploy\`)
+- **Content** = the prompt Claude receives when the command is invoked
+- Commands can include placeholders: \`$ARGUMENTS\` for user input after the command
+
+### Example: Review Command
+File: \`.claude/commands/review.md\`
+\`\`\`markdown
+Review the code changes in this project for:
+
+1. Security vulnerabilities (OWASP top 10)
+2. Performance issues
+3. TypeScript type safety
+4. Adherence to project conventions in CLAUDE.md
+
+Be specific about line numbers and files. Rate confidence for each finding.
+\`\`\`
+
+### Example: Deploy Command
+File: \`.claude/commands/deploy.md\`
+\`\`\`markdown
+Deploy this project to production:
+
+1. Run the build to check for errors
+2. Run tests
+3. Create a git commit with a descriptive message
+4. Push to the main branch
+5. Report the deployment status
+\`\`\`
+
+### Tips
+- Keep commands focused on one workflow
+- Include step-by-step instructions for consistency
+- Share useful commands with your team via git
+- User-specific commands go in \`~/.claude/commands/\` (global)`
+      },
+      {
+        slug: 'danger-mode',
+        title: 'Danger Mode',
+        category: 'configuration',
+        description: 'Skip permission prompts for faster workflow',
+        tags: ['permissions', 'speed', 'alias', 'shortcut', 'danger'],
+        content: `## Danger Mode
+
+For faster workflows, you can skip permission prompts using \`--dangerously-skip-permissions\`. This means Claude can read, write, and execute without asking you first.
+
+### Creating an Alias (Mac/Linux)
+
+1. Open terminal and edit your shell config:
+\`\`\`bash
+nano ~/.zshrc
+\`\`\`
+
+2. Add this line at the bottom:
+\`\`\`bash
+alias cc="claude --dangerously-skip-permissions"
+\`\`\`
+
+3. Save and reload:
+\`\`\`bash
+source ~/.zshrc
+\`\`\`
+
+Now typing \`cc\` starts Claude Code in danger mode.
+
+### Windows (PowerShell)
+
+1. Open PowerShell and type:
+\`\`\`powershell
+notepad $PROFILE
+\`\`\`
+
+2. Add this line:
+\`\`\`powershell
+function cc { claude --dangerously-skip-permissions $args }
+\`\`\`
+
+3. Save and restart PowerShell.
+
+### When to Use Danger Mode
+- Personal projects where you trust the operations
+- Rapid prototyping sessions
+- When you're closely watching the output
+
+### When NOT to Use Danger Mode
+- Production codebases with sensitive data
+- Projects with destructive scripts
+- When working with unfamiliar codebases
+- Shared/team environments`
+      },
+      {
+        slug: 'claude-md-template',
+        title: 'CLAUDE.md Template',
+        category: 'configuration',
+        description: 'Configure Claude Code for your project',
+        tags: ['config', 'template', 'claude.md', 'rules', 'project'],
+        content: `## CLAUDE.md Template
+
+The \`CLAUDE.md\` file in your project root is how you configure Claude Code's behavior. It's read on every interaction, so keep it concise and relevant.
+
+### Quick Start
+\`\`\`bash
+claude /init
+\`\`\`
+This auto-generates a CLAUDE.md based on your project.
+
+### Example Template
+\`\`\`markdown
+# My Project
+React SaaS app with Supabase backend
+
+## Tech Stack
+- Next.js 14 (App Router)
+- TypeScript (strict)
+- Tailwind CSS + shadcn/ui
+- Supabase (Auth, Postgres)
+
+## Rules
+- Use shadcn/ui components
+- Server components by default
+- Small files (<200 lines)
+- Always handle loading/error/empty states
+
+## Commands
+- npm run dev (development)
+- npm run build (production build)
+- npm test (run tests)
+
+## Permissions
+### Auto-Approved
+- npm, git add, git commit, git diff
+
+### Ask Before Running
+- git push, rm -rf, database migrations
+\`\`\`
+
+### What to Include
+- Tech stack and framework versions
+- Coding conventions and style rules
+- Key commands (dev, build, test, deploy)
+- Permission rules
+- File structure overview (brief)
+
+### What NOT to Include
+- Entire API documentation (link to it instead)
+- Long changelogs or history
+- Content that rarely changes
+- Duplicate information from package.json
+
+### Pro Tip
+Keep your CLAUDE.md under 500 lines. Every line is sent with every message, consuming context window tokens.`
+      },
+      {
+        slug: 'model-selection',
+        title: 'Model Selection',
+        category: 'configuration',
+        description: 'Choose the right model for each task',
+        tags: ['model', 'haiku', 'sonnet', 'opus', 'cost', 'performance'],
+        content: `## Model Selection
+
+Claude Code supports multiple models. Each has different strengths, speeds, and costs.
+
+### Available Models
+
+| Model | Speed | Quality | Cost | Best For |
+|-------|-------|---------|------|----------|
+| **Haiku** | Fastest | Good | Cheapest | Simple tasks, quick edits |
+| **Sonnet** | Fast | Great | Medium | Daily development, most tasks |
+| **Opus** | Slower | Best | Highest | Complex architecture, debugging |
+
+### Switching Models
+\`\`\`bash
+/model
+\`\`\`
+This opens an interactive selector. You can also set a default in your settings.
+
+### When to Use Each Model
+
+**Haiku** (fast + cheap):
+- Renaming variables
+- Simple file edits
+- Generating boilerplate
+- Quick questions about code
+
+**Sonnet** (balanced \u2014 default):
+- Feature development
+- Bug fixing
+- Code review
+- Writing tests
+- Most daily work
+
+**Opus** (powerful + expensive):
+- Complex architectural decisions
+- Multi-file refactoring
+- Debugging elusive issues
+- Planning large features
+- When Sonnet isn't cutting it
+
+### Extended Thinking (Opus)
+Opus supports extended thinking mode. Trigger it with phrases like:
+- "Think deeply about this"
+- "Ultrathink"
+- "Analyze this carefully"
+
+This gives Claude more reasoning time before responding, leading to better results on complex problems.
+
+### Cost Optimization
+- Start with Sonnet for most work
+- Drop to Haiku for simple/repetitive tasks
+- Upgrade to Opus only when you need the extra quality
+- A typical day: 80% Sonnet, 15% Haiku, 5% Opus`
+      },
+      {
+        slug: 'hooks-and-memory',
+        title: 'Hooks & Memory',
+        category: 'configuration',
+        description: 'Automate workflows and persist context',
+        tags: ['hooks', 'memory', 'automation', 'persistent', 'settings'],
+        content: `## Hooks & Memory
+
+### What Are Hooks?
+Hooks are shell commands that run automatically in response to Claude Code events. They let you automate repetitive tasks.
+
+### Hook Types
+| Hook | Triggers When |
+|------|---------------|
+| **PreToolUse** | Before a tool is executed |
+| **PostToolUse** | After a tool finishes |
+| **Notification** | When Claude sends a notification |
+| **Stop** | When Claude stops generating |
+
+### Setting Up Hooks
+\`\`\`bash
+/hooks
+\`\`\`
+This opens an interactive menu to create and manage hooks.
+
+### Practical Examples
+
+**Auto-format on file write:**
+- Hook type: PostToolUse
+- Matcher: Write, Edit
+- Command: \`prettier --write "$CLAUDE_FILE_PATH"\`
+
+**Lint check before commit:**
+- Hook type: PreToolUse
+- Matcher: Bash (when command contains "git commit")
+- Command: \`npm run lint\`
+
+**Notify on completion:**
+- Hook type: Stop
+- Command: \`osascript -e 'display notification "Claude is done" with title "Claude Code"'\`
+
+### Memory Across Sessions
+Claude Code doesn't have persistent memory between sessions by default. But you can build it:
+
+**CLAUDE.md as memory:**
+Your CLAUDE.md persists across sessions. Use it to store:
+- Project decisions made
+- Patterns established
+- Things to remember
+
+**Session summaries:**
+At the end of a session, ask Claude to update CLAUDE.md with key decisions:
+"Summarize what we did today and add it to the CLAUDE.md changelog"
+
+### Building Persistent Context
+1. Keep a "Decisions" section in CLAUDE.md
+2. Update it as you make architectural choices
+3. Claude reads it every session, maintaining continuity`
+      },
+      {
+        slug: 'mcp-servers',
+        title: 'MCP Servers',
+        category: 'mcp',
+        description: 'Connect Claude to external services',
+        tags: ['mcp', 'integration', 'api', 'servers', 'protocol'],
+        content: `## MCP Servers
+
+MCP (Model Context Protocol) lets Claude Code connect to external services and tools. Think of it as plugins for Claude.
+
+### How MCP Works
+1. You add an MCP server (a URL or local process)
+2. Claude discovers what tools the server provides
+3. Claude can call those tools during your session
+
+### Adding MCP Servers
+\`\`\`bash
+claude mcp add --transport http [name] [url]
+\`\`\`
+
+### With Authentication
+\`\`\`bash
+claude mcp add --transport http my-api https://api.example.com/mcp \\
+  --header "Authorization: Bearer your-token"
+\`\`\`
+
+### Managing Servers
+\`\`\`bash
+claude mcp list          # See all configured servers
+claude mcp remove [name] # Remove a server
+\`\`\`
+
+### Popular MCP Servers
+See the full list in the MCP Commands reference (browse the MCP Servers category).
+
+### Tips
+- **Disable unused servers** \u2014 Each active server adds to your context window
+- **Check authentication** \u2014 Some servers need API keys or OAuth tokens
+- **Scope appropriately** \u2014 Add servers per-project when possible, not globally
+- **Test after adding** \u2014 Ask Claude "what tools do you have from [server name]?"`
+      },
+      {
+        slug: 'n8n-claude-prompt',
+        title: 'n8n Claude Project Prompt',
+        category: 'n8n',
+        description: 'Ready-to-use Claude project prompt for n8n automation',
+        tags: ['n8n', 'prompt', 'automation', 'workflow', 'project'],
+        content: `## n8n Claude Project Prompt
+
+A comprehensive Claude project prompt for building n8n automations. Paste this into a Claude Project's custom instructions to get an expert n8n assistant.
+
+### What This Prompt Does
+- Configures Claude as an n8n automation expert
+- Teaches Claude how to build workflows via MCP
+- Includes common patterns, expression syntax, and debugging tips
+- Covers webhook setup, error handling, and deployment
+
+### How to Use
+1. Create a new Claude Project at claude.ai
+2. Open Project Settings \u2192 Custom Instructions
+3. Paste the full prompt below
+4. Start chatting about your n8n workflows
+
+**Copy the entire prompt below:**
+
+---PROMPT-START---
+
+# n8n Automation Assistant
+
+You are an expert n8n workflow automation assistant. You help users build, debug, and optimize n8n workflows using Claude Code with MCP server integration.
+
+## Core Behavior
+
+- Build workflows step-by-step, testing each node before moving on
+- Always use the MCP server tools when available for direct n8n interaction
+- Prefer webhook triggers for real-time integrations
+- Use error handling (try/catch) on every workflow
+- Follow the n8n expression syntax exactly
+
+## MCP Server Integration
+
+When connected to an n8n MCP server, you can:
+- Create and modify workflows directly
+- Test individual nodes
+- Deploy workflows
+- Read execution logs
+
+### Common MCP Commands
+\`\`\`
+# List workflows
+n8n.workflow.list
+
+# Get workflow details
+n8n.workflow.get(id)
+
+# Create workflow
+n8n.workflow.create(name, nodes, connections)
+
+# Execute workflow
+n8n.workflow.execute(id)
+
+# Get executions
+n8n.execution.list(workflowId)
+\`\`\`
+
+## Workflow Building Process
+
+### Step 1: Understand the Goal
+Ask the user:
+- What triggers this workflow? (webhook, schedule, event)
+- What data comes in?
+- What transformations are needed?
+- What's the output/destination?
+
+### Step 2: Design the Flow
+1. Trigger node (Webhook, Cron, etc.)
+2. Data fetching nodes (HTTP Request, Database, etc.)
+3. Transformation nodes (Code, Set, IF, Switch)
+4. Output nodes (HTTP Request, Email, Database, etc.)
+5. Error handling (try/catch wrapper)
+
+### Step 3: Build & Test
+- Create each node one at a time
+- Test with sample data
+- Verify output matches expectations
+- Connect nodes and test the full flow
+
+## n8n Expression Syntax
+
+### Accessing Data
+\`\`\`javascript
+// Current node input
+{{ $json.fieldName }}
+
+// Specific node output
+{{ $('NodeName').item.json.fieldName }}
+
+// All items from a node
+{{ $('NodeName').all() }}
+
+// First item from a node
+{{ $('NodeName').first().json.fieldName }}
+\`\`\`
+
+### Common Expressions
+\`\`\`javascript
+// Current timestamp
+{{ $now.toISO() }}
+
+// Format date
+{{ $json.date.toDateTime().toFormat('yyyy-MM-dd') }}
+
+// Conditional
+{{ $json.status === 'active' ? 'Yes' : 'No' }}
+
+// String manipulation
+{{ $json.name.toLowerCase().trim() }}
+
+// Array operations
+{{ $json.items.map(i => i.name).join(', ') }}
+\`\`\`
+
+### Webhook Configuration
+\`\`\`javascript
+// Webhook URL pattern
+https://your-n8n-instance.com/webhook/[path]
+
+// Test URL (different from production)
+https://your-n8n-instance.com/webhook-test/[path]
+
+// Always use production URL in external services
+// Test URL only works when workflow is in test mode
+\`\`\`
+
+## Error Handling Patterns
+
+### Try/Catch Wrapper
+Every production workflow should have error handling:
+1. Wrap main logic in a try/catch
+2. On error: log details, notify team, retry if appropriate
+3. Include the workflow name and node name in error messages
+
+### Retry Logic
+For flaky external APIs:
+\`\`\`javascript
+// In HTTP Request node settings:
+// - Retry on Fail: true
+// - Max Retries: 3
+// - Retry Interval: 1000ms
+\`\`\`
+
+### Common Error Patterns
+| Error | Cause | Fix |
+|-------|-------|-----|
+| 401 Unauthorized | Expired token | Refresh credentials |
+| 429 Too Many Requests | Rate limit | Add delay/retry |
+| Timeout | Slow API | Increase timeout setting |
+| Expression error | Wrong syntax | Check node output structure |
+
+## Chrome Extension Debugging
+
+When debugging n8n with the Chrome extension:
+1. Open the n8n workflow editor in Chrome
+2. Use the browser DevTools console to inspect workflow state
+3. Check the execution panel for detailed node outputs
+4. Look for red nodes indicating failures
+
+### Common Debug Steps
+\`\`\`
+1. Check the execution log (Executions tab)
+2. Click on the failed node to see input/output
+3. Verify expressions by testing in the expression editor
+4. Check credentials are valid and not expired
+5. Verify webhook URLs match the environment (test vs production)
+\`\`\`
+
+## Deployment Best Practices
+
+1. **Always test** the full workflow with realistic data
+2. **Activate** the workflow only after testing
+3. **Use environment variables** for credentials and URLs
+4. **Set up error notifications** (email or Slack)
+5. **Monitor executions** regularly for silent failures
+6. **Version control** export workflows as JSON for backup
+
+## Common Workflow Patterns
+
+### Webhook \u2192 Process \u2192 Respond
+\`\`\`
+Webhook Trigger \u2192 Code (transform) \u2192 HTTP Request (API call) \u2192 Respond to Webhook
+\`\`\`
+
+### Schedule \u2192 Fetch \u2192 Update
+\`\`\`
+Cron Trigger \u2192 HTTP Request (fetch data) \u2192 IF (check condition) \u2192 Database (update)
+\`\`\`
+
+### Multi-step with Error Handling
+\`\`\`
+Trigger \u2192 Try {
+  Fetch \u2192 Transform \u2192 Save \u2192 Notify Success
+} Catch {
+  Log Error \u2192 Notify Team
+}
+\`\`\`
+
+## Response Format
+
+When building workflows:
+1. Explain what each node does in plain English
+2. Provide the node configuration
+3. Show example input/output for each step
+4. Include error handling recommendations
+5. Suggest testing strategies
+
+---PROMPT-END---`
+      },
+      {
+        slug: 'terms-react',
+        title: 'React Concepts',
+        category: 'reference',
+        description: 'Key React terminology for working with Claude',
+        tags: ['react', 'components', 'state', 'props', 'hooks'],
+        content: `## React Concepts
+
+Key terms you'll encounter when building with Claude Code and React.
+
+### Components
+Reusable UI building blocks (Button, Card, Modal, Sidebar).
+**Say to Claude:** "Create a reusable Card component with title and description props"
+
+### State
+Data that changes over time and affects the UI (form values, toggles, loading states).
+**Say to Claude:** "Add loading state while the API call is in progress"
+
+### Props
+Inputs passed into components from parents.
+**Say to Claude:** "Make the button color configurable via props"
+
+### Hooks
+Functions that let you use React features in function components:
+- \`useState\` \u2014 Local state management
+- \`useEffect\` \u2014 Side effects (API calls, subscriptions)
+- \`useMemo\` \u2014 Expensive computation caching
+- \`useCallback\` \u2014 Stable function references
+- \`useRef\` \u2014 DOM references and mutable values
+
+### Server vs Client Components (Next.js)
+- **Server Components** (default) \u2014 Render on the server, no JavaScript sent to client
+- **Client Components** (\`"use client"\`) \u2014 Interactive, run in the browser
+- **Rule of thumb:** Start with Server Components, add \`"use client"\` only when you need interactivity`
+      },
+      {
+        slug: 'terms-architecture',
+        title: 'Architecture Terms',
+        category: 'reference',
+        description: 'Frontend, backend, and full-stack concepts',
+        tags: ['frontend', 'backend', 'api', 'full-stack', 'architecture'],
+        content: `## Architecture Terms
+
+### Frontend
+Everything the user sees and interacts with \u2014 HTML, CSS, JavaScript, React components.
+**Say to Claude:** "Frontend only", "UI component"
+
+### Backend
+Server-side logic, APIs, authentication, databases, background jobs.
+**Say to Claude:** "Create an API route", "Add server-side validation"
+
+### Full-stack
+Frontend + backend in one project (e.g., Next.js with API routes).
+**Say to Claude:** "Full-stack Next.js app"
+
+### API (Application Programming Interface)
+The interface between frontend and backend, usually REST or GraphQL.
+**Say to Claude:** "Create a POST endpoint at /api/users"
+
+### Database
+Where data is stored persistently (Supabase/Postgres, MySQL, MongoDB).
+**Say to Claude:** "Store this in the database", "Create a users table"
+
+### ORM
+Object-Relational Mapping \u2014 code that translates between your app and the database (Prisma, Drizzle).
+**Say to Claude:** "Use Prisma to query the users table"
+
+### Middleware
+Code that runs between the request and response (auth checks, logging, redirects).
+**Say to Claude:** "Add auth middleware to protect this route"`
+      },
+    ];
+
+    const TERMINAL_SHORTCUTS = [
+      // Moving Around
+      { id: 't1', title: 'Ctrl + A', category: 'terminal', subcategory: 'Moving Around', content: 'Jump to the start of the line', tags: ['cursor', 'navigation'] },
+      { id: 't2', title: 'Ctrl + E', category: 'terminal', subcategory: 'Moving Around', content: 'Jump to the end of the line', tags: ['cursor', 'navigation'] },
+      { id: 't3', title: 'Option + \u2190', category: 'terminal', subcategory: 'Moving Around', content: 'Jump one word left', tags: ['cursor', 'word'] },
+      { id: 't4', title: 'Option + \u2192', category: 'terminal', subcategory: 'Moving Around', content: 'Jump one word right', tags: ['cursor', 'word'] },
+      { id: 't5', title: 'Ctrl + XX', category: 'terminal', subcategory: 'Moving Around', content: 'Toggle between start of line and cursor position', tags: ['cursor', 'toggle'] },
+      // Deleting Text
+      { id: 't6', title: 'Ctrl + U', category: 'terminal', subcategory: 'Deleting Text', content: 'Delete everything before the cursor', tags: ['delete', 'clear'] },
+      { id: 't7', title: 'Ctrl + K', category: 'terminal', subcategory: 'Deleting Text', content: 'Delete everything after the cursor', tags: ['delete', 'clear'] },
+      { id: 't8', title: 'Ctrl + W', category: 'terminal', subcategory: 'Deleting Text', content: 'Delete the word before the cursor', tags: ['delete', 'word'] },
+      { id: 't9', title: 'Option + D', category: 'terminal', subcategory: 'Deleting Text', content: 'Delete the word after the cursor', tags: ['delete', 'word'] },
+      { id: 't10', title: 'Ctrl + H', category: 'terminal', subcategory: 'Deleting Text', content: 'Delete one character (like backspace)', tags: ['delete', 'backspace'] },
+      // History
+      { id: 't11', title: '\u2191', category: 'terminal', subcategory: 'History', content: 'Previous command', tags: ['history', 'navigate'] },
+      { id: 't12', title: '\u2193', category: 'terminal', subcategory: 'History', content: 'Next command', tags: ['history', 'navigate'] },
+      { id: 't13', title: 'Ctrl + R', category: 'terminal', subcategory: 'History', content: 'Search your command history', tags: ['history', 'search'] },
+      { id: 't14', title: 'Ctrl + G', category: 'terminal', subcategory: 'History', content: 'Exit history search', tags: ['history', 'exit'] },
+      { id: 't15', title: '!!', category: 'terminal', subcategory: 'History', content: 'Run the last command again', tags: ['history', 'repeat'] },
+      // Screen Control
+      { id: 't16', title: 'Ctrl + L', category: 'terminal', subcategory: 'Screen Control', content: 'Clear the screen (keeps your current line)', tags: ['clear', 'screen'] },
+      { id: 't17', title: 'Cmd + K', category: 'terminal', subcategory: 'Screen Control', content: 'Clear the entire terminal buffer', tags: ['clear', 'buffer'] },
+      { id: 't18', title: 'Ctrl + S', category: 'terminal', subcategory: 'Screen Control', content: 'Pause output (freezes scrolling)', tags: ['pause', 'freeze'] },
+      { id: 't19', title: 'Ctrl + Q', category: 'terminal', subcategory: 'Screen Control', content: 'Resume output', tags: ['resume', 'unfreeze'] },
+      // Process Control
+      { id: 't20', title: 'Ctrl + C', category: 'terminal', subcategory: 'Process Control', content: 'Stop the current command', tags: ['stop', 'cancel', 'kill'] },
+      { id: 't21', title: 'Ctrl + Z', category: 'terminal', subcategory: 'Process Control', content: 'Pause the current command (use fg to resume)', tags: ['pause', 'background'] },
+      { id: 't22', title: 'Ctrl + D', category: 'terminal', subcategory: 'Process Control', content: 'Close the terminal session', tags: ['exit', 'close'] },
+      // Undo
+      { id: 't23', title: 'Ctrl + _', category: 'terminal', subcategory: 'Undo', content: 'Undo the last edit', tags: ['undo', 'revert'] },
+      { id: 't24', title: 'Ctrl + Y', category: 'terminal', subcategory: 'Undo', content: 'Paste text you deleted with Ctrl+U or Ctrl+K', tags: ['paste', 'yank'] },
+    ];
+
+    const MCP_COMMANDS = [
+      { id: 'm1', title: 'Notion', category: 'mcp', content: 'claude mcp add --transport http notion https://mcp.notion.com/mcp', tags: ['notion', 'docs'] },
+      { id: 'm2', title: 'Canva', category: 'mcp', content: 'claude mcp add --transport http canva https://mcp.canva.com/mcp', tags: ['canva', 'design'] },
+      { id: 'm3', title: 'Cloudflare', category: 'mcp', content: 'claude mcp add --transport http cloudflare https://bindings.mcp.cloudflare.com/mcp', tags: ['cloudflare', 'hosting'] },
+      { id: 'm4', title: 'Figma', category: 'mcp', content: 'claude mcp add --transport http figma-remote-mcp https://mcp.figma.com/mcp', tags: ['figma', 'design'] },
+      { id: 'm5', title: 'Vercel', category: 'mcp', content: 'claude mcp add --transport http vercel https://mcp.vercel.com', tags: ['vercel', 'deploy'] },
+      { id: 'm6', title: 'Stripe', category: 'mcp', content: 'claude mcp add --transport http stripe https://mcp.stripe.com', tags: ['stripe', 'payments'] },
+      { id: 'm7', title: 'PayPal', category: 'mcp', content: 'claude mcp add --transport http paypal https://mcp.paypal.com/mcp', tags: ['paypal', 'payments'] },
+      { id: 'm8', title: 'Jotform', category: 'mcp', content: 'claude mcp add --transport http jotform https://mcp.jotform.com/', tags: ['jotform', 'forms'] },
+      { id: 'm9', title: 'GitHub', category: 'mcp', content: 'claude mcp add --transport http github https://api.githubcopilot.com/mcp/', tags: ['github', 'git'] },
+      { id: 'm10', title: 'Google Ads', category: 'mcp', content: 'npx claude-code-templates@latest --mcp=marketing/google-ads-mcp-server --yes', tags: ['google', 'ads', 'marketing'] },
+      { id: 'm11', title: 'Facebook Ads', category: 'mcp', content: 'npx claude-code-templates@latest --mcp=marketing/facebook-ads-mcp-server --yes', tags: ['facebook', 'ads', 'marketing'] },
+      { id: 'm12', title: 'Supabase', category: 'mcp', content: 'npx claude-code-templates@latest --mcp=database/supabase --yes', tags: ['supabase', 'database'] },
+      { id: 'm13', title: 'PostgreSQL', category: 'mcp', content: 'npx claude-code-templates@latest --mcp=database/postgresql-integration --yes', tags: ['postgres', 'database'] },
+      { id: 'm14', title: 'Playwright', category: 'mcp', content: 'npx claude-code-templates@latest --mcp=browser_automation/playwright-mcp-server --yes', tags: ['playwright', 'testing'] },
+      { id: 'm15', title: 'Chrome DevTools', category: 'mcp', content: 'npx claude-code-templates@latest --mcp=devtools/chrome-devtools --yes', tags: ['chrome', 'devtools'] },
+    ];
+
+    // Combine all searchable items
+    const ALL_ITEMS = [
+      ...TOPICS.map(t => ({ ...t, type: 'topic' })),
+      ...TERMINAL_SHORTCUTS.map(t => ({ ...t, type: 'shortcut' })),
+      ...MCP_COMMANDS.map(m => ({ ...m, type: 'mcp-command' })),
+    ];
+
+    // ═══════════════════════════════════════════════════════════════
+    // MARKDOWN RENDERER WITH SYNTAX HIGHLIGHTING
+    // ═══════════════════════════════════════════════════════════════
+
+    function highlightCode(code, lang) {
+      // Basic syntax highlighting
+      let highlighted = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Comments
+      highlighted = highlighted.replace(/(\/\/.*$|#.*$)/gm, '<span class="cmt">$1</span>');
+
+      // Strings (double and single quoted)
+      highlighted = highlighted.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, '<span class="str">$1</span>');
+
+      // Keywords
+      const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'import', 'export', 'from', 'default', 'class', 'new', 'this', 'async', 'await', 'try', 'catch', 'throw', 'true', 'false', 'null', 'undefined', 'npm', 'npx', 'claude', 'cd', 'mkdir', 'source', 'alias', 'nano', 'git', 'touch'];
+      const kwRegex = new RegExp('\\b(' + keywords.join('|') + ')\\b', 'g');
+      highlighted = highlighted.replace(kwRegex, (match) => {
+        // Don't highlight if inside a span already
+        return '<span class="kw">' + match + '</span>';
+      });
+
+      return highlighted;
+    }
+
+    function renderMarkdown(md) {
+      if (!md) return '';
+
+      // Process code blocks first (before other transformations)
+      let html = md;
+
+      // Fenced code blocks with copy button
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        const trimmedCode = code.trim();
+        const highlighted = highlightCode(trimmedCode, lang);
+        const langLabel = lang || 'text';
+        const escapedCode = trimmedCode.replace(/'/g, "\\'").replace(/\n/g, '\\n');
+        return `<div class="relative group my-4 rounded-lg overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#181825] text-xs">
+            <span class="text-[#6C7086]">${langLabel}</span>
+            <button onclick="(function(btn){navigator.clipboard.writeText('${escapedCode}');btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})(this)" class="text-[#6C7086] hover:text-[#CDD6F4] transition-colors">Copy</button>
+          </div>
+          <pre class="code-block px-4 py-3 overflow-x-auto text-sm leading-relaxed"><code>${highlighted}</code></pre>
+        </div>`;
+      });
+
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 bg-[#F3F4F6] text-[#6366F1] rounded text-sm font-mono">$1</code>');
+
+      // Tables
+      html = html.replace(/^\|(.+)\|\s*\n\|[-| :]+\|\s*\n((?:\|.+\|\s*\n?)*)/gm, (match, headerRow, bodyRows) => {
+        const headers = headerRow.split('|').map(h => h.trim()).filter(Boolean);
+        const headerHtml = headers.map(h => `<th>${h}</th>`).join('');
+        const rows = bodyRows.trim().split('\n').map(row => {
+          const cells = row.split('|').map(c => c.trim()).filter(Boolean);
+          return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+        }).join('');
+        return `<table><thead><tr>${headerHtml}</tr></thead><tbody>${rows}</tbody></table>`;
+      });
+
+      // Headers
+      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+      // Bold and italic
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+      // List items
+      html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+
+      // Wrap consecutive <li> in <ul>
+      html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+      // Horizontal rules
+      html = html.replace(/^---+$/gm, '<hr class="my-6 border-[#E5E7EB]">');
+
+      // Paragraphs (lines not starting with HTML tags)
+      html = html.replace(/^(?!<[a-z/]|$)(.+)$/gm, '<p>$1</p>');
+
+      // Clean up empty paragraphs
+      html = html.replace(/<p>\s*<\/p>/g, '');
+
+      return html;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // COMPONENTS
+    // ═══════════════════════════════════════════════════════════════
+
+    function Header({ onOpenCmd }) {
+      return (
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-[#E5E7EB]">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <a href="#" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
+                <Icon name="terminal" size={16} className="text-white" />
+              </div>
+              <span className="font-bold text-lg text-[#111827]">Claude Code Course</span>
+            </a>
+            <button
+              onClick={onOpenCmd}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-[#6B7280] bg-[#F3F4F6] hover:bg-[#E5E7EB] rounded-lg transition-colors duration-150"
+            >
+              <Icon name="search" size={14} />
+              <span className="hidden sm:inline">Search...</span>
+              <kbd className="cmd-k px-1.5 py-0.5 bg-white rounded border border-[#E5E7EB] text-[#9CA3AF]">\u2318K</kbd>
+            </button>
+          </div>
+        </header>
+      );
+    }
+
+    function CategoryTile({ category, onClick, topicCount }) {
+      return (
+        <button
+          onClick={onClick}
+          className="group p-5 bg-white rounded-xl border border-[#E5E7EB] hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 text-left"
+        >
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors duration-200"
+            style={{ backgroundColor: category.color + '14' }}
+          >
+            <Icon name={category.icon} size={20} className="transition-colors duration-200" strokeWidth={1.75} />
+          </div>
+          <div className="font-semibold text-[#111827] mb-1">{category.name}</div>
+          <div className="text-sm text-[#6B7280] leading-snug">{category.description}</div>
+          <div className="text-xs text-[#9CA3AF] mt-2">{topicCount} {topicCount === 1 ? 'topic' : 'topics'}</div>
+        </button>
+      );
+    }
+
+    function SearchResult({ item, onClick, isSelected }) {
+      const getTypeLabel = (type) => {
+        switch(type) {
+          case 'topic': return 'Topic';
+          case 'shortcut': return 'Shortcut';
+          case 'mcp-command': return 'MCP';
+          default: return type;
+        }
+      };
+
+      const getTypeColor = (type) => {
+        switch(type) {
+          case 'topic': return 'bg-[#EEF2FF] text-[#6366F1]';
+          case 'shortcut': return 'bg-[#ECFDF5] text-[#10B981]';
+          case 'mcp-command': return 'bg-[#FDF2F8] text-[#EC4899]';
+          default: return 'bg-[#F3F4F6] text-[#6B7280]';
+        }
+      };
+
+      return (
+        <button
+          onClick={onClick}
+          className={`w-full px-4 py-3 text-left transition-colors duration-100 ${isSelected ? 'bg-[#EEF2FF]' : 'hover:bg-[#F9FAFB]'}`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-medium text-[#111827] truncate">{item.title}</div>
+              <div className="text-sm text-[#6B7280] truncate">
+                {item.description || item.content}
+              </div>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ${getTypeColor(item.type)}`}>
+              {getTypeLabel(item.type)}
+            </span>
+          </div>
+        </button>
+      );
+    }
+
+    function CommandPalette({ isOpen, onClose, items, onSelect }) {
+      const [query, setQuery] = useState('');
+      const [selectedIndex, setSelectedIndex] = useState(0);
+      const inputRef = useRef(null);
+
+      const filtered = useMemo(() => {
+        if (!query.trim()) return items.slice(0, 12);
+        const q = query.toLowerCase();
+        return items.filter(item =>
+          item.title.toLowerCase().includes(q) ||
+          (item.description || '').toLowerCase().includes(q) ||
+          (item.content || '').toLowerCase().includes(q) ||
+          (item.tags || []).some(t => t.toLowerCase().includes(q))
+        ).slice(0, 12);
+      }, [query, items]);
+
+      useEffect(() => {
+        if (isOpen) {
+          setQuery('');
+          setSelectedIndex(0);
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }
+      }, [isOpen]);
+
+      useEffect(() => {
+        setSelectedIndex(0);
+      }, [query]);
+
+      useEffect(() => {
+        const handleKey = (e) => {
+          if (e.key === 'Escape') { onClose(); return; }
+          if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(i => Math.min(i + 1, filtered.length - 1)); return; }
+          if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(i => Math.max(i - 1, 0)); return; }
+          if (e.key === 'Enter' && filtered[selectedIndex]) { onSelect(filtered[selectedIndex]); onClose(); return; }
+        };
+        if (isOpen) {
+          document.addEventListener('keydown', handleKey);
+          return () => document.removeEventListener('keydown', handleKey);
+        }
+      }, [isOpen, onClose, filtered, selectedIndex, onSelect]);
+
+      if (!isOpen) return null;
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] sm:pt-[20vh] px-4 cmd-backdrop">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+          <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden cmd-modal border border-[#E5E7EB]">
+            <div className="flex items-center gap-3 px-4 border-b border-[#E5E7EB]">
+              <Icon name="search" size={18} className="text-[#9CA3AF] shrink-0" />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search topics, shortcuts, commands..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full py-3.5 outline-none text-[#111827] placeholder-[#9CA3AF] bg-transparent"
+              />
+              <kbd className="cmd-k px-1.5 py-0.5 bg-[#F3F4F6] rounded border border-[#E5E7EB] text-[#9CA3AF] text-xs shrink-0">esc</kbd>
+            </div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-[#F3F4F6]">
+              {filtered.length === 0 ? (
+                <div className="p-8 text-center text-[#9CA3AF]">
+                  <Icon name="search-x" size={32} className="mx-auto mb-2 opacity-50" />
+                  <div>No results found</div>
+                </div>
+              ) : (
+                filtered.map((item, i) => (
+                  <SearchResult
+                    key={item.slug || item.id}
+                    item={item}
+                    isSelected={i === selectedIndex}
+                    onClick={() => { onSelect(item); onClose(); }}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function CopyPromptButton({ content }) {
+      const [copied, setCopied] = useState(false);
+
+      const handleCopy = () => {
+        // Extract just the prompt text between the markers
+        const startMarker = '---PROMPT-START---';
+        const endMarker = '---PROMPT-END---';
+        const startIdx = content.indexOf(startMarker);
+        const endIdx = content.indexOf(endMarker);
+        let textToCopy = content;
+        if (startIdx !== -1 && endIdx !== -1) {
+          textToCopy = content.substring(startIdx + startMarker.length, endIdx).trim();
+        }
+        navigator.clipboard.writeText(textToCopy);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      };
+
+      return (
+        <button
+          onClick={handleCopy}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#6366F1] text-white rounded-lg hover:bg-[#4F46E5] transition-colors duration-150 font-medium text-sm mb-6"
+        >
+          <Icon name={copied ? 'check' : 'clipboard-copy'} size={16} />
+          {copied ? 'Copied to Clipboard!' : 'Copy Full Prompt'}
+        </button>
+      );
+    }
+
+    function TopicPage({ topic, onBack }) {
+      const category = CATEGORIES.find(c => c.id === topic.category);
+      const isN8nPrompt = topic.slug === 'n8n-claude-prompt';
+
+      return (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 text-sm text-[#6B7280] hover:text-[#111827] mb-6 transition-colors"
+          >
+            <Icon name="arrow-left" size={14} />
+            <span>Back to {category ? category.name : 'Home'}</span>
+          </button>
+          <div className="mb-2">
+            {category && (
+              <span
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full mb-3"
+                style={{ backgroundColor: category.color + '14', color: category.color }}
+              >
+                <Icon name={category.icon} size={12} />
+                {category.name}
+              </span>
+            )}
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#111827] mb-2">{topic.title}</h1>
+          <p className="text-[#6B7280] text-lg mb-6">{topic.description}</p>
+
+          {topic.tags && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {topic.tags.map(tag => (
+                <span key={tag} className="text-xs px-2 py-1 bg-[#F3F4F6] text-[#6B7280] rounded-full">{tag}</span>
+              ))}
+            </div>
+          )}
+
+          {isN8nPrompt && <CopyPromptButton content={topic.content} />}
+
+          <div className="topic-prose">
+            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(topic.content) }} />
+          </div>
+        </div>
+      );
+    }
+
+    function ShortcutCard({ item }) {
+      return (
+        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-[#E5E7EB] hover:border-[#D1D5DB] transition-colors">
+          <kbd className="px-2.5 py-1 bg-[#F3F4F6] rounded-md font-mono text-sm text-[#111827] border border-[#E5E7EB] shadow-sm">{item.title}</kbd>
+          <span className="text-sm text-[#6B7280] text-right ml-3">{item.content}</span>
+        </div>
+      );
+    }
+
+    function MCPCard({ item }) {
+      const [copied, setCopied] = useState(false);
+
+      const handleCopy = () => {
+        navigator.clipboard.writeText(item.content);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      };
+
+      return (
+        <div className="p-4 bg-white rounded-lg border border-[#E5E7EB] hover:border-[#D1D5DB] transition-all duration-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-semibold text-[#111827]">{item.title}</span>
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-colors duration-150 font-medium"
+              style={{ backgroundColor: copied ? '#ECFDF5' : '#F3F4F6', color: copied ? '#10B981' : '#6B7280' }}
+            >
+              <Icon name={copied ? 'check' : 'copy'} size={12} />
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+          <code className="text-xs text-[#6B7280] break-all font-mono leading-relaxed">{item.content}</code>
+        </div>
+      );
+    }
+
+    function LibraryPage({ category, onSelectTopic, onBack }) {
+      const [search, setSearch] = useState('');
+      const [collapsedGroups, setCollapsedGroups] = useState({});
+
+      const toggleGroup = (group) => {
+        setCollapsedGroups(prev => ({ ...prev, [group]: !prev[group] }));
+      };
+
+      let items = ALL_ITEMS;
+      if (category) {
+        items = items.filter(i => i.category === category);
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        items = items.filter(i =>
+          i.title.toLowerCase().includes(q) ||
+          (i.content || '').toLowerCase().includes(q) ||
+          (i.tags || []).some(t => t.includes(q))
+        );
+      }
+
+      const topics = items.filter(i => i.type === 'topic');
+      const shortcuts = items.filter(i => i.type === 'shortcut');
+      const mcpCommands = items.filter(i => i.type === 'mcp-command');
+
+      const shortcutGroups = shortcuts.reduce((acc, s) => {
+        const sub = s.subcategory || 'Other';
+        if (!acc[sub]) acc[sub] = [];
+        acc[sub].push(s);
+        return acc;
+      }, {});
+
+      const cat = category ? CATEGORIES.find(c => c.id === category) : null;
+      const categoryName = cat?.name || 'All Items';
+
+      return (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 text-sm text-[#6B7280] hover:text-[#111827] mb-6 transition-colors"
+          >
+            <Icon name="arrow-left" size={14} />
+            <span>Back to Home</span>
+          </button>
+
+          <div className="flex items-center gap-3 mb-6">
+            {cat && (
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: cat.color + '14' }}
+              >
+                <Icon name={cat.icon} size={20} />
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-[#111827]">{categoryName}</h1>
+              {cat && <p className="text-sm text-[#6B7280]">{cat.description}</p>}
+            </div>
+          </div>
+
+          <div className="relative mb-6">
+            <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+            <input
+              type="text"
+              placeholder="Filter..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full max-w-md pl-10 pr-4 py-2.5 border border-[#E5E7EB] rounded-lg outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/10 transition-all bg-white text-sm"
+            />
+          </div>
+
+          {topics.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-lg font-semibold mb-3 text-[#111827]">Topics</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {topics.map(t => (
+                  <button
+                    key={t.slug}
+                    onClick={() => onSelectTopic(t)}
+                    className="topic-card group p-4 text-left bg-white rounded-xl border border-[#E5E7EB] hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="accent-bar pl-3">
+                        <div className="font-semibold text-[#111827] mb-1">{t.title}</div>
+                        <div className="text-sm text-[#6B7280]">{t.description}</div>
+                      </div>
+                      <Icon name="arrow-right" size={16} className="text-[#D1D5DB] group-hover:text-[#6366F1] topic-arrow mt-1 shrink-0" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {Object.keys(shortcutGroups).length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-lg font-semibold mb-3 text-[#111827]">Terminal Shortcuts</h2>
+              {Object.entries(shortcutGroups).map(([group, groupItems]) => (
+                <div key={group} className="mb-4">
+                  <button
+                    onClick={() => toggleGroup(group)}
+                    className="flex items-center gap-2 text-sm font-medium text-[#6B7280] hover:text-[#111827] mb-2 transition-colors"
+                  >
+                    <Icon name={collapsedGroups[group] ? 'chevron-right' : 'chevron-down'} size={14} />
+                    {group}
+                    <span className="text-xs text-[#9CA3AF]">({groupItems.length})</span>
+                  </button>
+                  {!collapsedGroups[group] && (
+                    <div className="grid gap-2">
+                      {groupItems.map(s => <ShortcutCard key={s.id} item={s} />)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </section>
+          )}
+
+          {mcpCommands.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-lg font-semibold mb-3 text-[#111827]">MCP Commands</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {mcpCommands.map(m => <MCPCard key={m.id} item={m} />)}
+              </div>
+            </section>
+          )}
+
+          {items.length === 0 && (
+            <div className="text-center py-16">
+              <Icon name="search-x" size={40} className="mx-auto mb-3 text-[#D1D5DB]" />
+              <div className="text-[#6B7280]">No items found. Try a different search.</div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function HeroTerminal() {
+      return (
+        <div className="relative w-full max-w-lg mx-auto">
+          <div className="bg-[#1E1E2E] rounded-xl shadow-2xl overflow-hidden border border-[#313244]">
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#181825] border-b border-[#313244]">
+              <div className="w-3 h-3 rounded-full bg-[#F38BA8]" />
+              <div className="w-3 h-3 rounded-full bg-[#F9E2AF]" />
+              <div className="w-3 h-3 rounded-full bg-[#A6E3A1]" />
+              <span className="text-xs text-[#6C7086] ml-2 font-mono">terminal</span>
+            </div>
+            <div className="p-4 font-mono text-sm leading-relaxed">
+              <div className="text-[#6C7086]">~ project/</div>
+              <div className="mt-1">
+                <span className="text-[#A6E3A1]">$</span>
+                <span className="text-[#CDD6F4]"> claude</span>
+              </div>
+              <div className="mt-2 text-[#89B4FA]">
+                Welcome to Claude Code v1.0
+              </div>
+              <div className="mt-1 text-[#CDD6F4]">
+                How can I help you today?
+              </div>
+              <div className="mt-3">
+                <span className="text-[#F9E2AF]">&gt;</span>
+                <span className="text-[#CDD6F4]"> Build a landing page with email capture</span>
+              </div>
+              <div className="mt-2 text-[#A6E3A1]">
+                I'll create that for you. Let me start by...
+              </div>
+              <div className="mt-1 text-[#6C7086] animate-pulse">\u2588</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function HomePage({ onSelectCategory, onSelectTopic, onOpenCmd }) {
+      const getTopicCount = (catId) => {
+        if (catId === 'terminal') return TERMINAL_SHORTCUTS.length + ' shortcuts';
+        if (catId === 'mcp') return MCP_COMMANDS.length + ' servers';
+        const count = TOPICS.filter(t => t.category === catId).length;
+        return count;
+      };
+
+      return (
+        <div>
+          {/* Hero Section */}
+          <div className="hero-gradient">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+                    Master{' '}
+                    <span className="gradient-text">Claude Code</span>
+                  </h1>
+                  <p className="text-lg sm:text-xl text-[#6B7280] mb-8 leading-relaxed">
+                    Your comprehensive reference for the AI-powered CLI that builds software with you.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={onOpenCmd}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#111827] text-white rounded-xl hover:bg-[#1F2937] transition-colors duration-150 font-medium"
+                    >
+                      <Icon name="search" size={16} />
+                      <span>Search anything</span>
+                      <kbd className="cmd-k px-1.5 py-0.5 bg-white/10 rounded text-white/60 text-xs">\u2318K</kbd>
+                    </button>
+                    <button
+                      onClick={() => onSelectTopic(TOPICS.find(t => t.slug === 'what-is-claude-code'))}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 border border-[#E5E7EB] text-[#374151] rounded-xl hover:bg-white hover:shadow-sm transition-all duration-150 font-medium"
+                    >
+                      Get Started
+                      <Icon name="arrow-right" size={16} />
+                    </button>
+                  </div>
+                </div>
+                <div className="hidden lg:block">
+                  <HeroTerminal />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+            {/* Categories */}
+            <section className="mb-16">
+              <h2 className="text-xl font-bold mb-1 text-[#111827]">Browse by Category</h2>
+              <p className="text-[#6B7280] mb-6">Everything you need, organized by topic.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {CATEGORIES.map(cat => (
+                  <CategoryTile
+                    key={cat.id}
+                    category={cat}
+                    topicCount={getTopicCount(cat.id)}
+                    onClick={() => onSelectCategory(cat.id)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* Featured Topics */}
+            <section>
+              <h2 className="text-xl font-bold mb-1 text-[#111827]">Popular Topics</h2>
+              <p className="text-[#6B7280] mb-6">Start here if you're new to Claude Code.</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {TOPICS.slice(0, 6).map(topic => {
+                  const cat = CATEGORIES.find(c => c.id === topic.category);
+                  return (
+                    <button
+                      key={topic.slug}
+                      onClick={() => onSelectTopic(topic)}
+                      className="topic-card group p-5 text-left bg-white rounded-xl border border-[#E5E7EB] hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          {cat && (
+                            <span
+                              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full mb-2"
+                              style={{ backgroundColor: cat.color + '14', color: cat.color }}
+                            >
+                              {cat.name}
+                            </span>
+                          )}
+                          <div className="font-semibold text-[#111827] mb-1">{topic.title}</div>
+                          <div className="text-sm text-[#6B7280] leading-snug">{topic.description}</div>
+                        </div>
+                        <Icon name="arrow-right" size={16} className="text-[#D1D5DB] group-hover:text-[#6366F1] topic-arrow mt-6 shrink-0" />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // APP
+    // ═══════════════════════════════════════════════════════════════
+
+    function App() {
+      const [view, setView] = useState('home');
+      const [selectedCategory, setSelectedCategory] = useState(null);
+      const [selectedTopic, setSelectedTopic] = useState(null);
+      const [cmdOpen, setCmdOpen] = useState(false);
+
+      // Handle hash routing
+      useEffect(() => {
+        const handleHash = () => {
+          const hash = window.location.hash.slice(1);
+          if (!hash || hash === '/') {
+            setView('home');
+            setSelectedCategory(null);
+            setSelectedTopic(null);
+          } else if (hash.startsWith('topic/')) {
+            const slug = hash.replace('topic/', '');
+            const topic = TOPICS.find(t => t.slug === slug);
+            if (topic) {
+              setSelectedTopic(topic);
+              setView('topic');
+            }
+          } else if (hash.startsWith('category/')) {
+            const cat = hash.replace('category/', '');
+            setSelectedCategory(cat);
+            setView('library');
+          } else if (hash === 'library') {
+            setSelectedCategory(null);
+            setView('library');
+          }
+        };
+
+        handleHash();
+        window.addEventListener('hashchange', handleHash);
+        return () => window.removeEventListener('hashchange', handleHash);
+      }, []);
+
+      // Scroll to top on view change
+      useEffect(() => {
+        window.scrollTo(0, 0);
+      }, [view, selectedTopic, selectedCategory]);
+
+      // Cmd+K shortcut
+      useEffect(() => {
+        const handleKey = (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            setCmdOpen(true);
+          }
+        };
+        document.addEventListener('keydown', handleKey);
+        return () => document.removeEventListener('keydown', handleKey);
+      }, []);
+
+      const handleSelectCategory = (catId) => {
+        window.location.hash = `category/${catId}`;
+      };
+
+      const handleSelectTopic = (topic) => {
+        window.location.hash = `topic/${topic.slug}`;
+      };
+
+      const handleCmdSelect = (item) => {
+        if (item.type === 'topic') {
+          handleSelectTopic(item);
+        } else if (item.type === 'shortcut') {
+          window.location.hash = 'category/terminal';
+        } else if (item.type === 'mcp-command') {
+          window.location.hash = 'category/mcp';
+        }
+      };
+
+      const handleBack = () => {
+        if (selectedTopic && selectedCategory) {
+          window.location.hash = `category/${selectedCategory}`;
+        } else if (selectedTopic) {
+          const cat = TOPICS.find(t => t.slug === selectedTopic.slug)?.category;
+          if (cat) {
+            window.location.hash = `category/${cat}`;
+          } else {
+            window.location.hash = '';
+          }
+        } else {
+          window.location.hash = '';
+        }
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          <Header onOpenCmd={() => setCmdOpen(true)} />
+
+          <main className="flex-1">
+            {view === 'home' && (
+              <HomePage
+                onSelectCategory={handleSelectCategory}
+                onSelectTopic={handleSelectTopic}
+                onOpenCmd={() => setCmdOpen(true)}
+              />
+            )}
+
+            {view === 'library' && (
+              <LibraryPage
+                category={selectedCategory}
+                onSelectTopic={handleSelectTopic}
+                onBack={() => { window.location.hash = ''; }}
+              />
+            )}
+
+            {view === 'topic' && selectedTopic && (
+              <TopicPage topic={selectedTopic} onBack={handleBack} />
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t border-[#E5E7EB] bg-white mt-auto">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#9CA3AF]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
+                  <Icon name="terminal" size={10} className="text-white" />
+                </div>
+                <span>Claude Code Course</span>
+              </div>
+              <div>Built for developers who build with AI</div>
+            </div>
+          </footer>
+
+          <CommandPalette
+            isOpen={cmdOpen}
+            onClose={() => setCmdOpen(false)}
+            items={ALL_ITEMS}
+            onSelect={handleCmdSelect}
+          />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
